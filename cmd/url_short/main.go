@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/hisnameisivan/demo_url_short/internal/config"
+	"github.com/hisnameisivan/demo_url_short/internal/http-server/handlers/redirect"
 	"github.com/hisnameisivan/demo_url_short/internal/http-server/handlers/url/save"
 	mvLogger "github.com/hisnameisivan/demo_url_short/internal/http-server/middleware/logger"
 	"github.com/hisnameisivan/demo_url_short/internal/storage/sqlite"
@@ -42,8 +43,15 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	router.Post("/url", save.New(log, storage))
-	// router.Get("{alias}", redirect.New(log, storage))
+	router.Route("/url", func(r chi.Router) {
+		r.Use(middleware.BasicAuth("url-short", map[string]string{
+			cfg.HTTPServer.User: cfg.HTTPServer.Password, // единственный user
+		}))
+
+		r.Post("/", save.New(log, storage))
+	})
+
+	router.Get("/{alias}", redirect.New(log, storage))
 
 	srv := &http.Server{
 		Addr:         net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port)),
@@ -76,3 +84,12 @@ func setupLogger(env string) *slog.Logger {
 
 	return log
 }
+
+/*
+	curl -i -u "myuser:mypassword"  --request POST \
+	--url localhost:8081/url \
+	--header 'Content-Type: application/json' \
+	--data '{
+	"url": "http://yandex.ru"
+	}'
+*/

@@ -5,4 +5,5 @@ http_server:
   port: 8081
   rw_timeout: 4s
   idle_timeout: 60s
-
+  user: "myuser"
+  password: "mypassword"

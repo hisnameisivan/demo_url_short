@@ -35,7 +35,6 @@ type UrlSaver interface {
 // FIXME: kill New()
 func New(log *slog.Logger, urlSaver UrlSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		// FIXME: Тузов использует log - много записей request_id, к тому же они разные
 		childLog := log.With(
 			slog.String("request_id", middleware.GetReqID(r.Context())),
